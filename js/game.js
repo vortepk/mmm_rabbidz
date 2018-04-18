@@ -128,7 +128,7 @@ Game.Play.prototype = {
     // var
     SCORE = 0;
     LEVEL = 1;
-    LIVES = 30;
+    LIVES = 3;
 
     this.changeLevel = true;
 
@@ -488,7 +488,7 @@ Game.Win.prototype = {
   }
 };
 
-var game = new Phaser.Game(W, H, Phaser.CANVAS, 'game-container');
+var game = new Phaser.Game(W, H, Phaser.AUTO, 'game-container');
 
 game.state.add('Boot', Game.Boot);
 game.state.add('Load', Game.Load);
