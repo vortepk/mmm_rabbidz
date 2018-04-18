@@ -22,16 +22,8 @@ Game.Boot = function(game) {};
 Game.Boot.prototype = {
   preload: function() {
     game.stage.backgroundColor = '#47BBC3';
-    game.load.image('loading', 'images/loading.png');
-    game.load.image('loading-border', 'images/loading-border.png');
   },
   create: function() {
-    //generating empty array with sub-arrays which will be used soon as a map for rabbits spawning
-    MAP.length = 9;
-    for(var i = 0; i < MAP.length; i++) {
-        MAP[i] = [];
-        MAP[i].length = 15;
-    }
     game.state.start('Load');
   }
 };
@@ -55,16 +47,10 @@ Game.Load.prototype = {
     );
     loadingText.anchor.setTo(0.5, 0.5);
 
-    // preloading image
-    preloadingBorder = game.add.sprite(W / 2, H / 2 + 15, 'loading-border');
-    preloadingBorder.x -= preloadingBorder.widtH / 2;
-    preloading = game.add.sprite(W / 2, H / 2 + 19, 'loading');
-    preloading.x -= preloading.widtH / 2;
-    game.load.setPreloadSprite(preloading);
-
     // game images
     game.load.image('rabbit', 'images/rabbit.png');
     game.load.image('circle', 'images/circle.png');
+    game.load.image('blow', 'images/blow.png');
     game.load.spritesheet('bad', 'images/bad.png', 36, 40);
 
   },
@@ -81,12 +67,15 @@ Game.Menu.prototype = {
   create: function() {
     // input
     game.input.onDown.add(this.startGame, this);
+    var spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    spaceKey.onDown.add(this.startGame, this);
 
     // enemy
     this.bad = game.add.sprite(W / 2, H / 2 - 120, 'bad');
     this.bad.anchor.setTo(0.5, 1);
-    this.bad.animations.add('walk', [0, 1], 5, true).play();
-
+    this.bad.animations.add('walk');
+    this.bad.animations.play('walk', 5, true);
+  
     // circle
     this.circle = game.add.sprite(W / 2, H / 2, 'circle');
     this.circle.anchor.setTo(0.5, 0.5);
@@ -97,13 +86,13 @@ Game.Menu.prototype = {
       fill: '#FFF',
       align: 'center'
     };
-    topLabel = game.add.text(W / 2 + 0.5, 50, "MMM, RABBITZ!", topLabelStyle);
+    topLabel = game.add.text(W / 2 + 0.5, 50, "MMM, RABBIDZ!", topLabelStyle);
     topLabel.anchor.setTo(0.5, 0.5);
 
     // middle label
     var middleLabelStyle = {
       font: '20px Arial',
-      fill: '#FFF',
+      fill: '#47BBC3',
       align: 'center'
     };
     var middleLabel = game.add.text(W / 2 + 0.5, H / 2 + 0.5, "TAP TO\nSTART THE GAME", middleLabelStyle);
@@ -139,12 +128,14 @@ Game.Play.prototype = {
     // var
     SCORE = 0;
     LEVEL = 1;
-    LIVES = 3;
+    LIVES = 30;
 
     this.changeLevel = true;
 
     // input
     game.input.onDown.add(this.jump, this);
+    var spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    spaceKey.onDown.add(this.jump, this);
 
     // player
     this.rabbits = game.add.group();
@@ -153,7 +144,8 @@ Game.Play.prototype = {
     // enemy
     this.bad = game.add.sprite(W / 2, H / 2, 'bad');
     this.bad.anchor.setTo(0.5, 1);
-    this.bad.animations.add('walk', [0, 1], 5, true).play();
+    this.bad.animations.add('walk');
+    this.bad.animations.play('walk', 5, true);
     game.physics.arcade.enable(this.bad);
 
     // circle
@@ -172,14 +164,14 @@ Game.Play.prototype = {
     // middle label (LEVEL)
     var middleLabelStyle = {
       font: '80px Arial',
-      fill: '#FFF',
+      fill: '#47BBC3',
       align: 'center'
     };
 
     // middle label (LIVES) 
     var middleLabel2Style = {
       font: '20px Arial',
-      fill: '#FFF',
+      fill: '#47BBC3',
       align: 'center'
     };
 
@@ -189,6 +181,32 @@ Game.Play.prototype = {
     this.middle2Label = game.add.text(W / 2, (H / 2) + 50, "Default", middleLabel2Style);
     this.middle2Label.anchor.setTo(0.5, 0.5);
 
+    //generating a new level map which is used to spawn rabbits each play 
+    //rabbits spawning randomly (chances are 60/40) on 15 avialible cells
+    //first level is training level and always the same
+    MAP[0] = [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0];
+    MAP.length = 9;
+    for(var i = 1; i < MAP.length; i++) {
+        MAP[i] = [];
+        MAP[i].length = 15;
+        var j = MAP[i];
+        for (var j = 0; j < MAP[i].length; j++) {
+         MAP[i][j] = Math.random() < 0.6 ? 0 : 1;
+        }
+    }
+    console.log('map: ', MAP);
+  },
+  randomInt: function(min, max) {
+    var rand = min - 0.5 + Math.random() * (max - min + 1)
+    rand = Math.round(rand);
+    return rand;
+  },
+  speed: function() {
+      (LEVEL - 1 < 2) ? this.bad.angle += 1.2 :
+      (LEVEL - 1 < 4) ? this.bad.angle += 1.4 :
+      (LEVEL - 1 < 6) ? this.bad.angle += 1.6 :
+      (LEVEL - 1 < 8) ? this.bad.angle += 1.8 :
+      this.bad.angle += 2.0;
   },
   update: function() {
     game.physics.arcade.overlap(this.bad, this.rabbits, this.hit, null, this);
@@ -198,9 +216,7 @@ Game.Play.prototype = {
     // -180 -> 0
     
     //Losing condition
-    if(LIVES == 0) {
-      game.state.start('End');
-    }
+    if(LIVES == 0) game.state.start('End');
 
     // prevent js lagging
     if (this.bad.angle >= -2 && this.bad.angle <= 2 && this.changeLevel) {
@@ -211,7 +227,8 @@ Game.Play.prototype = {
       this.changeLevel = true;
     }
 
-    this.bad.angle += 1.2;
+    //bad speed
+    this.speed();
 
     var x = W / 2 + (this.circle.width / 2 - 4) * Math.cos(this.bad.rotation - Math.PI / 2);
     var y = H / 2 + (this.circle.width / 2 - 4) * Math.sin(this.bad.rotation - Math.PI / 2);
@@ -243,11 +260,27 @@ Game.Play.prototype = {
     }, 300).start();
   },
   hit: function(bad, rabbit) {
+    //create a blow out sprite on the place where rabbit is eaten. additional variables and if conditions to fix a bug
+    var blowX = rabbit.x, blowY = rabbit.y;
+    if(rabbit.x < W / 2) { 
+      blowX -= 40; blowY -= 20;
+    }
+    else if(rabbit.x > W / 2) { 
+      blowY += 10;
+    }
+    else if(rabbit.x = W / 2) { 
+      blowY += 10;
+    }
+    this.blow = game.add.sprite(blowX,blowY, 'blow');
+    game.add.tween(this.blow).to({
+        alpha: 0
+      }, 150).start().onComplete.add(function() {
+        this.kill();
+      }, this.blow);
+    //destroys a rabbit object and decrement lives
     rabbit.kill();
-    //SCORE++;
     LIVES--;
   },
-
   jump: function() {
     var min = 20;
     var minR;
@@ -304,16 +337,13 @@ Game.Play.prototype = {
         alpha: 0
       }, 500).start();
     }
-
-    // adding rabbits (generating level map). Rabbits spawning randomly (at 50/50 chance) on avialible 15 cells. 
+    
+    // adding a rabbits using level map
     var l = MAP[LEVEL - 1];
     for (var i = 0; i < l.length; i++) {
-      l[i] = Math.random() < 0.6 ? 0 : 1;
       if(l[i] == 1) this.addRabbit(i * (Math.PI / 10), i);
     }
-
-    console.log('map:', l);
-
+    //increment level each 360 degrees spin
     LEVEL++;
   }
 };
@@ -328,7 +358,13 @@ Game.End.prototype = {
       BEST_SCORE = SCORE;
     }
 
+    //delete level map
+    MAP=[];
+
+    //input
     game.input.onDown.add(this.startGame, this);
+    var spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    spaceKey.onDown.add(this.startGame, this);
 
     // circle
     this.circle = game.add.sprite(W / 2, H / 2, 'circle');
@@ -353,11 +389,18 @@ Game.End.prototype = {
 
     var middleLabelStyle = {
       font: '20px Arial',
-      fill: '#FFF',
+      fill: '#47BBC3',
       align: 'center'
     };
-    var middleLabel = game.add.text(W / 2 + 0.5, H / 2 + 0.5, "TAP TO\nRESTART THE GAME", middleLabelStyle);
+    var middleLabel = game.add.text(W / 2 + 0.5, H / 2 + 0.5, "TAP TO\nRESTART", middleLabelStyle);
     middleLabel.anchor.setTo(0.5, 0.5);
+    game.add.tween(middleLabel.scale).to({
+      x: 1.1,
+      y: 1.1
+    }, 300).to({
+      x: 1,
+      y: 1
+    }, 300).loop().start();
 
 
     this.currentTime = game.time.now + 500;
@@ -385,7 +428,13 @@ Game.Win.prototype = {
       BEST_SCORE = SCORE;
     }
 
+    //delete level map
+    MAP = [];
+
+    //input
     game.input.onDown.add(this.startGame, this);
+    var spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    spaceKey.onDown.add(this.startGame, this);
 
     // circle
     this.circle = game.add.sprite(W / 2, H / 2, 'circle');
@@ -410,11 +459,18 @@ Game.Win.prototype = {
 
     var middleLabelStyle = {
       font: '20px Arial',
-      fill: '#FFF',
+      fill: '#47BBC3',
       align: 'center'
     };
-    var middleLabel = game.add.text(W / 2 + 0.5, H / 2 + 0.5, "TAP TO\nRESTART THE GAME", middleLabelStyle);
+    var middleLabel = game.add.text(W / 2 + 0.5, H / 2 + 0.5, "TAP TO\nRESTART", middleLabelStyle);
     middleLabel.anchor.setTo(0.5, 0.5);
+    game.add.tween(middleLabel.scale).to({
+      x: 1.1,
+      y: 1.1
+    }, 300).to({
+      x: 1,
+      y: 1
+    }, 300).loop().start();
 
 
     this.currentTime = game.time.now + 500;
