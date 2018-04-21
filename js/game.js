@@ -1,12 +1,14 @@
 var MAP = [];
 Game = {};
-var W = 500;
-var H = 500;
+var W = innerWidth;
+var H = innerHeight;
 var LEVEL;
 var SCORE;
 var BEST_SCORE = 0;
 var CURRENT_TIME;
 var LIVES;
+var speed;
+var chooseRandomLevel = [];
 
 /*================================================================ UTIL
 */
@@ -25,7 +27,7 @@ Game.Boot.prototype = {
   },
   create: function() {
     game.state.start('Load');
-  }
+  },
 };
 
 /*================================================================ LOAD
@@ -49,6 +51,7 @@ Game.Load.prototype = {
 
     // game images
     game.load.image('rabbit', 'images/rabbit.png');
+    game.load.image('rabbit2', 'images/rabbit2.png');
     game.load.image('circle', 'images/circle.png');
     game.load.image('blow', 'images/blow.png');
     game.load.spritesheet('bad', 'images/bad.png', 36, 40);
@@ -71,13 +74,13 @@ Game.Menu.prototype = {
     spaceKey.onDown.add(this.startGame, this);
 
     // enemy
-    this.bad = game.add.sprite(W / 2, H / 2 - 120, 'bad');
+    this.bad = game.add.sprite(game.world.centerX, game.world.centerY - 120, 'bad');
     this.bad.anchor.setTo(0.5, 1);
     this.bad.animations.add('walk');
     this.bad.animations.play('walk', 5, true);
   
     // circle
-    this.circle = game.add.sprite(W / 2, H / 2, 'circle');
+    this.circle = game.add.sprite(game.world.centerX, game.world.centerY, 'circle');
     this.circle.anchor.setTo(0.5, 0.5);
 
     // top label
@@ -86,13 +89,13 @@ Game.Menu.prototype = {
       fill: '#FFF',
       align: 'center'
     };
-    topLabel = game.add.text(W / 2 + 0.5, 50, "MMM, RABBIDZ!", topLabelStyle);
+    topLabel = game.add.text(game.world.centerX, 50, "MMM, RABBIDZ!", topLabelStyle);
     topLabel.anchor.setTo(0.5, 0.5);
 
     // middle label
     var middleLabelStyle = {
       font: '20px Arial',
-      fill: '#47BBC3',
+      fill: '#5DB5A4',
       align: 'center'
     };
     var middleLabel = game.add.text(W / 2 + 0.5, H / 2 + 0.5, "TAP TO\nSTART THE GAME", middleLabelStyle);
@@ -111,7 +114,7 @@ Game.Menu.prototype = {
       fill: '#FFF',
       align: 'center'
     };
-    var bottomLabel = game.add.text(W / 2 + 0.5, H - 30, "TRY TO SAVE ALL RABBITS BY TAPPING", bottomLabelStyle);
+    var bottomLabel = game.add.text(game.world.centerX, H - 60, "TRY SAVE ALL RABBITS\nFROM GREEN DUDE", bottomLabelStyle);
     bottomLabel.anchor.setTo(0.5, 0.5);
   },
   startGame: function() {
@@ -128,7 +131,12 @@ Game.Play.prototype = {
     // var
     SCORE = 0;
     LEVEL = 1;
-    LIVES = 30;
+    LIVES = 3;
+    speed = 13;
+    chooseRandomLevel[0] = this.randomInt(2,3);
+    chooseRandomLevel[1] = this.randomInt(4,6);
+    console.log('random lvl 1 group: ', chooseRandomLevel[0]);
+    console.log('random lvl 2 group: ', chooseRandomLevel[1]);
 
     this.changeLevel = true;
 
@@ -137,19 +145,20 @@ Game.Play.prototype = {
     var spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     spaceKey.onDown.add(this.jump, this);
 
-    // player
+    // rabbits
     this.rabbits = game.add.group();
-    this.rabbits.createMultiple(30, 'rabbit');
+    this.rabbits.createMultiple(15, 'rabbit');
+    this.rabbits.createMultiple(15, 'rabbit2');
 
     // enemy
-    this.bad = game.add.sprite(W / 2, H / 2, 'bad');
+    this.bad = game.add.sprite(game.world.centerX, game.world.centerY, 'bad');
     this.bad.anchor.setTo(0.5, 1);
     this.bad.animations.add('walk');
     this.bad.animations.play('walk', 5, true);
     game.physics.arcade.enable(this.bad);
 
     // circle
-    this.circle = game.add.sprite(W / 2, H / 2, 'circle');
+    this.circle = game.add.sprite(game.world.centerX, game.world.centerY, 'circle');
     this.circle.anchor.setTo(0.5, 0.5);
 
     // top label
@@ -158,55 +167,54 @@ Game.Play.prototype = {
       fill: '#FFF',
       align: 'center'
     };
-    this.topLabel = game.add.text(W / 2 + 0.5, 30, "TRY TO SAVE ALL RABBITS BY TAPPING", topLabelStyle);
+    this.topLabel = game.add.text(game.world.centerX, 65, "TAP FOR RABBIT TO JUMP\nEACH RABBIT JUMPS ONCE", topLabelStyle);
     this.topLabel.anchor.setTo(0.5, 0.5);
 
     // middle label (LEVEL)
     var middleLabelStyle = {
       font: '80px Arial',
-      fill: '#47BBC3',
+      fill: '#5DB5A4',
       align: 'center'
     };
 
     // middle label (LIVES) 
     var middleLabel2Style = {
       font: '20px Arial',
-      fill: '#47BBC3',
+      fill: '#5DB5A4',
       align: 'center'
     };
 
-    this.middleLabel = game.add.text(W / 2, H / 2, "1", middleLabelStyle);
+    this.middleLabel = game.add.text(game.world.centerX, game.world.centerY, "1", middleLabelStyle);
     this.middleLabel.anchor.setTo(0.5, 0.5);
 
-    this.middle2Label = game.add.text(W / 2, (H / 2) + 50, "Default", middleLabel2Style);
+    this.middle2Label = game.add.text(game.world.centerX, (game.world.centerY) + 50, "Default", middleLabel2Style);
     this.middle2Label.anchor.setTo(0.5, 0.5);
 
     //generating a new level map which is used to spawn rabbits each play 
     //rabbits spawning randomly (chances are 60/40) on 15 avialible cells
     //first level is training level and always the same
-    MAP[0] = [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0];
+    MAP[0] = [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0];
     MAP.length = 9;
+    var count = 0;
+
     for(var i = 1; i < MAP.length; i++) {
         MAP[i] = [];
-        MAP[i].length = 15;
+        MAP[i].length = 14;
         var j = MAP[i];
         for (var j = 0; j < MAP[i].length; j++) {
-         MAP[i][j] = Math.random() < 0.6 ? 0 : 1;
+         MAP[i][j] = Math.random() < 0.7 ? 1 : 0;
+          (MAP[i][j] == 1) ? count++ : count += 0 ; 
         }
+        //MAP[i][0] = 0;
     }
+
     console.log('map: ', MAP);
+    console.log('rabbits: ', count);
   },
   randomInt: function(min, max) {
     var rand = min - 0.5 + Math.random() * (max - min + 1)
     rand = Math.round(rand);
     return rand;
-  },
-  speed: function() {
-      (LEVEL - 1 < 2) ? this.bad.angle += 1.2 :
-      (LEVEL - 1 < 4) ? this.bad.angle += 1.4 :
-      (LEVEL - 1 < 6) ? this.bad.angle += 1.6 :
-      (LEVEL - 1 < 8) ? this.bad.angle += 1.8 :
-      this.bad.angle += 2.0;
   },
   update: function() {
     game.physics.arcade.overlap(this.bad, this.rabbits, this.hit, null, this);
@@ -216,7 +224,10 @@ Game.Play.prototype = {
     // -180 -> 0
     
     //Losing condition
-    if(LIVES == 0) game.state.start('End');
+    if(LIVES == 0) {
+       game.state.start('End');
+       return;
+    }
 
     // prevent js lagging
     if (this.bad.angle >= -2 && this.bad.angle <= 2 && this.changeLevel) {
@@ -228,7 +239,8 @@ Game.Play.prototype = {
     }
 
     //bad speed
-    this.speed();
+    //this.speedManager();
+    this.bad.angle += speed / 10;
 
     var x = W / 2 + (this.circle.width / 2 - 4) * Math.cos(this.bad.rotation - Math.PI / 2);
     var y = H / 2 + (this.circle.width / 2 - 4) * Math.sin(this.bad.rotation - Math.PI / 2);
@@ -274,7 +286,7 @@ Game.Play.prototype = {
     this.blow = game.add.sprite(blowX,blowY, 'blow');
     game.add.tween(this.blow).to({
         alpha: 0
-      }, 150).start().onComplete.add(function() {
+      }, 100).start().onComplete.add(function() {
         this.kill();
       }, this.blow);
     //destroys a rabbit object and decrement lives
@@ -310,7 +322,17 @@ Game.Play.prototype = {
     }
   },
   drawLevel: function() {
+    /** switch(LEVEL) {
+      case 1:
+        speed = 2.0;
+        break;
+      default:
+        speed = 1.0;
+        break;
+    } */
+
     console.log('LEVEL', LEVEL);
+    console.log('SPEED', speed);
     if (LEVEL == 10) {
       game.state.start('Win');
       return;
@@ -320,7 +342,7 @@ Game.Play.prototype = {
     this.rabbits.forEachAlive(function(r) {
       var t = game.add.tween(r).to({
         alpha: 0
-      }, 300).start();
+      }, 100).start();
 
       t.onComplete.add(function() {
         this.kill(); SCORE++;
@@ -345,6 +367,7 @@ Game.Play.prototype = {
     }
     //increment level each 360 degrees spin
     LEVEL++;
+    speed++;
   }
 };
 
@@ -376,23 +399,23 @@ Game.End.prototype = {
       fill: '#FFF',
       align: 'center'
     };
-    var topLabel = game.add.text(W / 2 + 0.5, 65, "YOU LOSE\nbut at least you saved " + SCORE + " rabbits\nthanks *qwakk*", topLabelStyle);
+    var topLabel = game.add.text(game.world.centerX, 65, "YOU LOSE\nSAVED " + SCORE + " RABBITS\nthanks bro", topLabelStyle);
     topLabel.anchor.setTo(0.5, 0.5);
 
     var bottomLabelStyle = {
-      font: '20px Arial',
+      font: '30px Arial',
       fill: '#FFF',
       align: 'center'
     };
-    var bottomLabel = game.add.text(W / 2 + 0.5, H - 30, "BEST SCORE: " + BEST_SCORE, bottomLabelStyle);
+    var bottomLabel = game.add.text(game.world.centerX, H - 30, "BEST SCORE: " + BEST_SCORE, bottomLabelStyle);
     bottomLabel.anchor.setTo(0.5, 0.5);
 
     var middleLabelStyle = {
       font: '20px Arial',
-      fill: '#47BBC3',
+      fill: '#5DB5A4',
       align: 'center'
     };
-    var middleLabel = game.add.text(W / 2 + 0.5, H / 2 + 0.5, "TAP TO\nRESTART", middleLabelStyle);
+    var middleLabel = game.add.text(game.world.centerX, game.world.centerY, "TAP TO\nRESTART", middleLabelStyle);
     middleLabel.anchor.setTo(0.5, 0.5);
     game.add.tween(middleLabel.scale).to({
       x: 1.1,
@@ -446,23 +469,23 @@ Game.Win.prototype = {
       fill: '#FFF',
       align: 'center'
     };
-    var topLabel = game.add.text(W / 2 + 0.5, 65, "YOU WIN\nAnd saved " + SCORE + " rabbits\nthanks *qwakk*", topLabelStyle);
+    var topLabel = game.add.text(game.world.centerX, 65, "YOU WIN\nSAVED " + SCORE + " RABBITS\nthanks bro", topLabelStyle);
     topLabel.anchor.setTo(0.5, 0.5);
 
     var bottomLabelStyle = {
-      font: '20px Arial',
+      font: '30px Arial',
       fill: '#FFF',
       align: 'center'
     };
-    var bottomLabel = game.add.text(W / 2 + 0.5, H - 30, "BEST SCORE: " + BEST_SCORE, bottomLabelStyle);
+    var bottomLabel = game.add.text(game.world.centerX, H - 30, "BEST SCORE: " + BEST_SCORE, bottomLabelStyle);
     bottomLabel.anchor.setTo(0.5, 0.5);
 
     var middleLabelStyle = {
       font: '20px Arial',
-      fill: '#47BBC3',
+      fill: '#5DB5A4',
       align: 'center'
     };
-    var middleLabel = game.add.text(W / 2 + 0.5, H / 2 + 0.5, "TAP TO\nRESTART", middleLabelStyle);
+    var middleLabel = game.add.text(game.world.centerX, game.world.centerY, "TAP TO\nRESTART", middleLabelStyle);
     middleLabel.anchor.setTo(0.5, 0.5);
     game.add.tween(middleLabel.scale).to({
       x: 1.1,
