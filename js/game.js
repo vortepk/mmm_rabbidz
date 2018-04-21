@@ -132,11 +132,14 @@ Game.Play.prototype = {
     SCORE = 0;
     LEVEL = 1;
     LIVES = 3;
+<<<<<<< HEAD
     speed = 13;
     chooseRandomLevel[0] = this.randomInt(2,3);
     chooseRandomLevel[1] = this.randomInt(4,6);
     console.log('random lvl 1 group: ', chooseRandomLevel[0]);
     console.log('random lvl 2 group: ', chooseRandomLevel[1]);
+=======
+>>>>>>> 2210e677926184e65bea1790630790c883f69ac9
 
     this.changeLevel = true;
 
@@ -511,7 +514,7 @@ Game.Win.prototype = {
   }
 };
 
-var game = new Phaser.Game(W, H, Phaser.CANVAS, 'game-container');
+var game = new Phaser.Game(W, H, Phaser.AUTO, 'game-container');
 
 game.state.add('Boot', Game.Boot);
 game.state.add('Load', Game.Load);
