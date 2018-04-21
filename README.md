@@ -1,4 +1,4 @@
-# mmm_rabbidz
+# MMM, RABBIDZ
 Casual HTML5 game. Modificated version of "I hate rabbits" by Thomas Palef (Lessmilk). Work in progress.<br/>
 Hosted on GitHub Pages. [Play here!](https://vortepk.github.io/mmm_rabbidz/)
 
@@ -23,6 +23,7 @@ There is still a lot of to do. I invest my free time to this project and gradual
 
 ## Screenshot
 <img src="https://github.com/vortepk/mmm_rabbidz/blob/master/images/gameplay.png" alt="Screenshot" />
+<p>Screenshot on desktop version
 
 ## License
 MMM, RABBIDZ is licensed under the [MIT license.](https://github.com/vortepk/mmm_rabbidz/blob/master/LICENSE)
