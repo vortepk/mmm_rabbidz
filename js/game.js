@@ -8,7 +8,7 @@ var BEST_SCORE = 0;
 var CURRENT_TIME;
 var LIVES;
 var speed;
-var chooseRandomLevel = [];
+var randomLVL = [];
 
 /*================================================================ UTIL
 */
@@ -133,10 +133,11 @@ Game.Play.prototype = {
     LEVEL = 1;
     LIVES = 3;
     speed = 13;
-    chooseRandomLevel[0] = this.randomInt(2,3);
-    chooseRandomLevel[1] = this.randomInt(4,6);
-    console.log('random lvl 1 group: ', chooseRandomLevel[0]);
-    console.log('random lvl 2 group: ', chooseRandomLevel[1]);
+    randomLVL[0] = 3;
+    randomLVL[1] = this.randomInt(4,6);
+    randomLVL[2] = this.randomInt(7,9);
+    console.log('random lvl 2 group: ', randomLVL[1]);
+    console.log('random lvl 3 group: ', randomLVL[2]);
 
     this.changeLevel = true;
 
@@ -216,6 +217,22 @@ Game.Play.prototype = {
     rand = Math.round(rand);
     return rand;
   },
+  speedManager: function() {
+    switch(LEVEL-1) {
+      case randomLVL[0]:
+        this.bad.angle += 1.7;
+        break;
+      case randomLVL[1]:
+        this.bad.angle += 1.9;
+        break;
+      case randomLVL[2]:
+        this.bad.angle += 1.9;
+        break;
+      default:
+        this.bad.angle += 1.3;
+        break;
+    }
+  },
   update: function() {
     game.physics.arcade.overlap(this.bad, this.rabbits, this.hit, null, this);
 
@@ -239,8 +256,7 @@ Game.Play.prototype = {
     }
 
     //bad speed
-    //this.speedManager();
-    this.bad.angle += speed / 10;
+    this.speedManager();
 
     var x = W / 2 + (this.circle.width / 2 - 4) * Math.cos(this.bad.rotation - Math.PI / 2);
     var y = H / 2 + (this.circle.width / 2 - 4) * Math.sin(this.bad.rotation - Math.PI / 2);
@@ -278,7 +294,7 @@ Game.Play.prototype = {
       blowX -= 40; blowY -= 20;
     }
     else if(rabbit.x > W / 2) { 
-      blowY += 10;
+      blowY += 5;
     }
     else if(rabbit.x = W / 2) { 
       blowY += 10;
@@ -312,27 +328,17 @@ Game.Play.prototype = {
         .to({
           x: x,
           y: y
-        }, 400)
+        }, 300)
         .to({
           x: rabbit.x,
           y: rabbit.y
-        }, 600);
+        }, 700);
       rabbit.t2.start();
       rabbit.jump = true;
     }
   },
   drawLevel: function() {
-    /** switch(LEVEL) {
-      case 1:
-        speed = 2.0;
-        break;
-      default:
-        speed = 1.0;
-        break;
-    } */
-
     console.log('LEVEL', LEVEL);
-    console.log('SPEED', speed);
     if (LEVEL == 10) {
       game.state.start('Win');
       return;
@@ -367,7 +373,7 @@ Game.Play.prototype = {
     }
     //increment level each 360 degrees spin
     LEVEL++;
-    speed++;
+    speed += 0.5;
   }
 };
 
@@ -379,7 +385,10 @@ Game.End.prototype = {
   create: function() {
     if (SCORE > BEST_SCORE) {
       BEST_SCORE = SCORE;
+      localStorage.setItem('saved_score', BEST_SCORE);
     }
+
+    console.log('local best score: ',localStorage.getItem('saved_score'));
 
     //delete level map
     MAP=[];
@@ -407,7 +416,7 @@ Game.End.prototype = {
       fill: '#FFF',
       align: 'center'
     };
-    var bottomLabel = game.add.text(game.world.centerX, H - 30, "BEST SCORE: " + BEST_SCORE, bottomLabelStyle);
+    var bottomLabel = game.add.text(game.world.centerX, H - 30, "BEST SCORE: " + localStorage.getItem('saved_score'), bottomLabelStyle);
     bottomLabel.anchor.setTo(0.5, 0.5);
 
     var middleLabelStyle = {
@@ -449,7 +458,10 @@ Game.Win.prototype = {
   create: function() {
     if (SCORE > BEST_SCORE) {
       BEST_SCORE = SCORE;
+      localStorage.setItem('saved_score', BEST_SCORE);
     }
+
+    console.log('local best score: ',localStorage.getItem('saved_score'));
 
     //delete level map
     MAP = [];
@@ -477,7 +489,7 @@ Game.Win.prototype = {
       fill: '#FFF',
       align: 'center'
     };
-    var bottomLabel = game.add.text(game.world.centerX, H - 30, "BEST SCORE: " + BEST_SCORE, bottomLabelStyle);
+    var bottomLabel = game.add.text(game.world.centerX, H - 30, "BEST SCORE: " + localStorage.getItem('saved_score'), bottomLabelStyle);
     bottomLabel.anchor.setTo(0.5, 0.5);
 
     var middleLabelStyle = {
