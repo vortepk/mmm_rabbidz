@@ -6,20 +6,15 @@ Hosted on GitHub Pages. [Play here!](https://vortepk.github.io/mmm_rabbidz/)
 Your goal is to save as much rabbits as you can from green dude.<br/>
 Left click / space key / tap to jump. Each rabbit jumps only once.<br/>
 Every saved rabbit (who jumped over a dude) gives +1 to your score.<br/>
-Green dude accelerates at every new level.<br/>
+Green dude moderately accelerates at every new level (but sometimes very sharply).<br/>
 Only 3 rabbits is admitted to be eaten. Otherwise, game is over.<br/>
 For now, there is only 9 available levels. If you pass them - you win.<br/>
 
 ### Bugs:
-Game in development. Therefore, there is a bugs which can appear during gameplay. I know about them :smile:
+There is a bugs which can appear during gameplay. Don't judge strictly :smile:
 
-### Next steps:
-There is still a lot of to do. I invest my free time to this project and gradually approaching the moment when game development will be finished.
-
-### Main tasks:
-1. Gameplay
-2. Design
-3. Compatibility
+### What's next?
+The project is frozen due to desire to work more on my own game projects.
 
 ## Screenshot
 <img src="https://github.com/vortepk/mmm_rabbidz/blob/master/images/gameplay.png" alt="Screenshot" />
